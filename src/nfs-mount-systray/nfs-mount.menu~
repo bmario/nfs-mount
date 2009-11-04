@@ -1,5 +1,0 @@
-?package(nfs-mount-systray): needs="X11" \
-                    section="Apps/Net" \
-                    title="Nfs Browser" \
-                    command="/usr/bin/nfs" \
-                    icon="server"

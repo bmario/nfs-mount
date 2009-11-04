@@ -1,7 +1,0 @@
-#!/bin/bash
-
-if [ -e /etc/init.d/nfs-mount-export ]      rm /etc/init.d/nfs-mount-export
-if [ -e /usr/bin/nfs-mount-exporter.py ]    rm /usr/bin/nfs-mount-exporter.py
-if [ -e /usr/bin/nfs-mount-unexporter.py ]  rm /usr/bin/nfs-mount-unexporter.py
-
-update-rc.d nfs-mount-export remove

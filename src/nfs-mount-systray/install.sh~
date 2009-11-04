@@ -1,3 +1,0 @@
-#!/bin/bash
-# copie files
-cp nfs-mount-systray.py /usr/bin/nfs-mount-systray.py
