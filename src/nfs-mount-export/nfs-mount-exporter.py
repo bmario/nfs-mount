@@ -32,7 +32,7 @@ servicePort = 2049        # default NFS port
 serviceTXTPrefix = "path="      # TXT record for the service
 serviceDomain = "local"
 
-def parse_shares(filename='/etc/default'):
+def parse_shares(filename='/etc/exports'):
     """
     Parses NFS Shares from filename.
 
