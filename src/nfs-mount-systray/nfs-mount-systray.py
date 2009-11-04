@@ -49,7 +49,7 @@ class NfsMountSystrayApplet:
 
 		# dbus stuff
 		bus = dbus.SystemBus()
-		self.nfsmount = dbus.Interface(bus.get_object('de.dragon_soft.nfsmount', '/de/dragon_soft/nfsmount'), 'de.dragon_soft.nfsmount')
+		self.nfsmount = dbus.Interface(bus.get_object('de.moonlake.nfsmount', '/de/moonlake/nfsmount'), 'de.moonlake.nfsmount')
 
 		# connect to dbus signals
 		self.nfsmount.connect_to_signal("newShare", self.new_share)
@@ -65,13 +65,15 @@ class NfsMountSystrayApplet:
 
 		gtk.main()
 
+	# quit methode
 	def quit(self,widget,event=None):
 		gtk.main_quit()
 
+	# unmount handler
 	def unmount_share(self, widget, event=None):
 		if event in self.mountlist:
 			self.nfsmount.unmountShare(event)
-        
+    # mount handler    
 	def mount_share(self, widget, event=None):
 		if event not in self.mountlist:
 			self.nfsmount.mountShare(event)

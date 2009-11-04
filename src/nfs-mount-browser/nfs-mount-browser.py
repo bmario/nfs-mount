@@ -32,8 +32,8 @@ class nfs_browser(dbus.service.Object):
 
         # prepare own dbus interface
         self.session_bus = dbus.SystemBus()
-        name = dbus.service.BusName("de.dragon_soft.nfsmount", self.session_bus)
-        dbus.service.Object.__init__(self, dbus.SystemBus(), "/de/dragon_soft/nfsmount")
+        name = dbus.service.BusName("de.moonlake.nfsmount", self.session_bus)
+        dbus.service.Object.__init__(self, dbus.SystemBus(), "/de/moonlake/nfsmount")
 
         # prepare avahi
         self.bus = dbus.SystemBus()
@@ -53,7 +53,7 @@ class nfs_browser(dbus.service.Object):
 
         gobject.MainLoop().run()
         
-    @dbus.service.signal(dbus_interface='de.dragon_soft.nfsmount', signature='s')
+    @dbus.service.signal(dbus_interface='de.moonlake.nfsmount', signature='s')
     def newShare(self, share):
         pass
         
