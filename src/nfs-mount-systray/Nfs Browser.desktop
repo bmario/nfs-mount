@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=Nfs Browser
+Type=Application
+Terminal=false
+Name[de_DE]=Nfs Browser
+Comment[de_DE]=Starts the Nfs Browser
+Exec=/usr/bin/nfs-mount-systray.py
+Comment=Starts the Nfs Browser
+Icon=/usr/share/icons/gnome/scalable/places/server.svg

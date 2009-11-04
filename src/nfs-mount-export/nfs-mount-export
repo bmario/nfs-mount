@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+test -x /usr/sbin/rpc.nfsd -a -f /etc/exports || exit 0
+
+case "$1" in
+start)
+	printf "Publish NFS-shares over Avahi:"
+	nfs-mount-exporter.py > /dev/null &
+	printf " Done"
+	printf ".\n"
+	;;
+stop)
+	printf "Stopping publishing the NFS-shares over Avahi:"
+	killall nfs-mount-exporter.py > /dev/null &
+	printf " Done"
+	printf ".\n"
+	;;
+restart)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+*)
+	printf "Usage: $0 {start|stop|restart}\n" >&2
+	exit 1
+	;;
+esac
+
+exit 0
