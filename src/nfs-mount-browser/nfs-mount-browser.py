@@ -57,7 +57,7 @@ class nfs_browser(dbus.service.Object):
     def newShare(self, share):
         pass
         
-    @dbus.service.signal(dbus_interface='de.dragon_soft.nfsmount', signature='s')        
+    @dbus.service.signal(dbus_interface='de.moonlake.nfsmount', signature='s')        
     def removeShare(self, share):
         pass
 
@@ -84,18 +84,18 @@ class nfs_browser(dbus.service.Object):
             del self.shares[name]
         self.removeShare(name)
 
-    @dbus.service.method(dbus_interface='de.dragon_soft.nfsmount', in_signature='s', out_signature='as')
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='s', out_signature='as')
     def getShareInfo(self, share):
         return self.shares[share]
 
-    @dbus.service.method(dbus_interface='de.dragon_soft.nfsmount', in_signature='s', out_signature='b')
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='s', out_signature='b')
     def isShareMounted(self, share):
         if share in self.mounts:
             return True
         else:
             return False
 
-    @dbus.service.method(dbus_interface='de.dragon_soft.nfsmount', in_signature='s', out_signature='')
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='s', out_signature='')
     def mountShare(self, share):
         share = self.getShareInfo(share)
         try:
@@ -107,7 +107,7 @@ class nfs_browser(dbus.service.Object):
 
         self.mountedShare(share[0])
         
-    @dbus.service.method(dbus_interface='de.dragon_soft.nfsmount', in_signature='s', out_signature='')
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='s', out_signature='')
     def unmountShare(self, share):
         share = self.getShareInfo(share)
         os.system(r"umount -l -f /media/nfs/%s%s" % (share[1], share[4].replace("/", "_")))
@@ -117,19 +117,19 @@ class nfs_browser(dbus.service.Object):
         self.unmountedShare(share[0])
 
 
-    @dbus.service.signal(dbus_interface='de.dragon_soft.nfsmount', signature='s')        
+    @dbus.service.signal(dbus_interface='de.moonlake.nfsmount', signature='s')        
     def mountedShare(self, share):
         pass
 
-    @dbus.service.signal(dbus_interface='de.dragon_soft.nfsmount', signature='s')        
+    @dbus.service.signal(dbus_interface='de.moonlake.nfsmount', signature='s')        
     def unmountedShare(self, share):
         pass
         
-    @dbus.service.method(dbus_interface='de.dragon_soft.nfsmount', in_signature='', out_signature='as')
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='', out_signature='as')
     def getShareList(self):
         return self.shares.keys()
 
-    @dbus.service.method(dbus_interface='de.dragon_soft.nfsmount', in_signature='', out_signature='as')
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='', out_signature='as')
     def getMountList(self):
         return self.mounts
        
