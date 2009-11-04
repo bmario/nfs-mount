@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 #       nfsmount-exporter.py Version 0.2
 #
@@ -19,52 +20,46 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import dbus
-import avahi
-import gobject
-import os
+from dbus import SystemBus, Interface, UInt32, UInt16
+from avahi import DBUS_NAME, DBUS_PATH_SERVER, DBUS_INTERFACE_SERVER, IF_UNSPEC, PROTO_INET, strink_array_to_txt_array
+from gobject import MainLoop
+from os import access, F_OK, R_OK
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 serviceType = "_nfs._tcp" # See http://www.dns-sd.org/ServiceTypes.html
 servicePort = 2049        # default NFS port
-serviceTXT = "path="      # TXT record for the service
+serviceTXTPrefix = "path="      # TXT record for the service
 serviceDomain = "local"
 
+def parse_shares(filename='/etc/default'):
+    """
+    Parses NFS Shares from filename.
+
+    Returns: List of Shares
+    """
+    shares = []
+    f = open(filename, 'r')
+    for line in f.readlines():
+        if line.strip()[0] == '#': continue
+        normalized_line = line.strip().replace('\t','    ')
+        path = normalized_line.split()[0]
+        shares.append(path)
+    f.close()
+    return shares
+# We are a Script, lets go!
 if __name__ == '__main__':
-
-    bus = dbus.SystemBus()
-
-    server = dbus.Interface(
-            bus.get_object( avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER ),
-            avahi.DBUS_INTERFACE_SERVER )
-
+    bus = SystemBus()
+    server = Interface(
+            bus.get_object( DBUS_NAME, DBUS_PATH_SERVER ),
+            DBUS_INTERFACE_SERVER )
     hostname = server.GetHostNameFqdn()
-
-    group = dbus.Interface(bus.get_object(avahi.DBUS_NAME, server.EntryGroupNew()), avahi.DBUS_INTERFACE_ENTRY_GROUP)
-
-    fobj = open("/etc/exports", "r")
-
-    for line in fobj:
-        line = line.strip()
-        line = line.replace("\t", "    ")
-        if line[0] != "#":
-            line = line[:line.find(" ")]
-            path = line
-            
-            name = "%s:%s" % (hostname, path)
-            txt = "%s%s" % (serviceTXT, path)
-            
-            group.AddService(avahi.IF_UNSPEC, avahi.PROTO_INET, dbus.UInt32(0), name, serviceType, serviceDomain, hostname, dbus.UInt16(servicePort), avahi.string_array_to_txt_array([txt]))
-            
-
-
-#            os.system('avahi-publish-service "%s:%s" %s %s "%s%s" &' % (hostname, path, serviceType, servicePort, serviceTXT, path))
-
-    fobj.close()
-    
-    group.Commit()
-    
-main_loop = gobject.MainLoop()
+    group = Interface(bus.get_object(DBUS_NAME, server.EntryGroupNew()), DBUS_INTERFACE_ENTRY_GROUP)
+    for share in parse_shares():
+        serviceName = "%s:%s" % (hostname, share)
+        serviceTXT = "%s%s" % (serviceTXTPrefix, share)
+        group.AddService(IF_UNSPEC, PROTO_INET, UInt32(0), serviceName, serviceType, serviceDomain, hostname, UInt16(servicePort), string_array_to_txt_array([serviceTXT]))
+        group.Commit()
+# Start the MainLoop for Avahi
+main_loop = MainLoop()
 main_loop.run()
-
