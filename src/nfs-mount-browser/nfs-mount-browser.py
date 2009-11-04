@@ -41,6 +41,11 @@ class nfs_browser(dbus.service.Object):
         self.sbrowser = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME, self.server.ServiceBrowserNew(avahi.IF_UNSPEC, avahi.PROTO_INET, "_nfs._tcp", 'local', dbus.UInt32(0))), avahi.DBUS_INTERFACE_SERVICE_BROWSER)
         self.sbrowser.connect_to_signal("ItemNew", self.newItem)
         self.sbrowser.connect_to_signal("ItemRemove", self.removeItem)
+
+        self.s4browser = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME, self.server.ServiceBrowserNew(avahi.IF_UNSPEC, avahi.PROTO_INET, "_nfs4._tcp", 'local', dbus.UInt32(0))), avahi.DBUS_INTERFACE_SERVICE_BROWSER)
+        self.s4browser.connect_to_signal("ItemNew", self.newItem)
+        self.s4browser.connect_to_signal("ItemRemove", self.removeItem)
+
         
         self.shares = {}
         self.mounts = []
@@ -67,13 +72,18 @@ class nfs_browser(dbus.service.Object):
         txt = ''
         for i in args[9][0]:
             txt = "%s%s" % (txt, i)
-            
+        
+        if(stype=="_nfs4._tcp"):
+            version = "4"
+        else:
+            version = "3"
+                
         name = str(name)
         host = str(args[5])
         address = str(args[7])
         port = str(args[8])
         path = txt[5:]
-        self.shares[name] = [name, host, address, port, path]
+        self.shares[name] = [name, host, address, port, path, version]
         
         self.newShare(name)
         
@@ -102,7 +112,10 @@ class nfs_browser(dbus.service.Object):
             os.makedirs(r"/media/nfs/%s%s" % (share[1], share[4].replace("/", "_")))
         except:
             pass
-        os.system(r"mount -t nfs %s:%s /media/nfs/%s%s" % (share[2], share[4], share[1], share[4].replace("/", "_")))
+        if(share[5] == "4"):
+            os.system(r"mount -t nfs4 %s:%s /media/nfs/%s%s" % (share[2], share[4], share[1], share[4].replace("/", "_")))
+        else:
+            os.system(r"mount -t nfs %s:%s /media/nfs/%s%s" % (share[2], share[4], share[1], share[4].replace("/", "_")))
         self.mounts.append(share[0])
 
         self.mountedShare(share[0])
