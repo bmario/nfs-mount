@@ -117,11 +117,11 @@ class NfsMountSystrayApplet:
 			if share in self.mountlist:
 				hbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CONNECT,gtk.ICON_SIZE_MENU),False,False)
 				item.connect("activate",self.unmount_share, share)
-				tooltip = "Hostname: %s\nAddress: %s\nPath:%s\nShare is mounted." % (si[1], si[2], si[4])
+				tooltip = "Hostname: %s\nAddress: %s\nPath: %s\nVersion: %s\nShare is mounted." % (si[1], si[2],si[4], si[5])
 			else:
 				hbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_DISCONNECT,gtk.ICON_SIZE_MENU),False,False)
 				item.connect("activate",self.mount_share, share)
-				tooltip = "Hostname: %s\nAddress: %s\nPath:%s\nShare is not mounted" % (si[1], si[2], si[4])
+				tooltip = "Hostname: %s\nAddress: %s\nPath: %s\nVersion: %s\nShare is not mounted" % (si[1], si[2], si[4],si[5])
 			label = gtk.Label(share)
 			label.set_alignment(1,1)
 			hbox.pack_start(label,False,False)
