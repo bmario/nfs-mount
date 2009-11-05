@@ -25,6 +25,7 @@ from avahi import DBUS_NAME, DBUS_PATH_SERVER, DBUS_INTERFACE_ENTRY_GROUP, DBUS_
 from gobject import MainLoop
 from os import access, F_OK, R_OK
 from dbus.mainloop.glib import DBusGMainLoop
+from foomatic import detect
 DBusGMainLoop(set_as_default=True)
 
 serviceType3 = "_nfs._tcp" # See http://www.dns-sd.org/ServiceTypes.html
@@ -56,54 +57,36 @@ def detect_nfs_version(filename='/etc/exports'):
     f.close()
     return 3     
 
-def parse_shares(version=3):
-    """
-    Redirect parse_share() to the right function
-    
-    Returns: List of Shares
-    """
-    if(version==4):
-        return parse_shares4()
-    return parse_shares3()
-
-
-def parse_shares3(filename='/etc/exports'):
+def parse_shares(filename='/etc/exports'):
     """
     Parses NFS Shares from filename.
 
     Returns: List of Shares
     """
-    shares = []
-    f = open(filename, 'r')
-    for line in f.readlines():
-        if line.strip()[0] == '#': continue
-        normalized_line = line.strip().replace('\t','    ')
-        path = normalized_line.split()[0]
-        shares.append(path)
-    f.close()
-    return shares
-
-def parse_shares4(filename='/etc/exports'):
-    """
-    Parses NFS Shares from filename, but nfs4 version
-
-    Returns: List of Shares
-    """
     global serviceRootPath
+    
+    version = detect_nfs_version()
     shares = []
     f = open(filename, 'r')
     for line in f.readlines():
-        try:
-            if line.strip()[0] == '#': continue
+        try: # try is used for empty lines
+            if line.strip()[0] == '#': continue # is it a comment?
+            
             normalized_line = line.strip().replace('\t','    ')
-            path = normalized_line.split()[0]
-            path = path.replace(serviceRootPath, '')
-            if path.strip() == '': path = '/'
+            path = normalized_line.split()[0] #normalized path
+    
+            # nfs4 stuff
+            if(version==4):
+                path = path.replace(serviceRootPath, '')
+                if path.strip() == '': path = '/'
+            
             shares.append(path)
         except:
             pass
+
     f.close()
-    return shares    
+    
+    return shares
 
 def export_share(share):
     bus = SystemBus()
@@ -121,7 +104,8 @@ def export_share(share):
 
 # We are a Script, lets go!
 if __name__ == '__main__':
-    for share in parse_shares(detect_nfs_version()):
+    for share in parse_shares():
+        # export the shares
         export_share(share)
 # Start the MainLoop for Avahi
 main_loop = MainLoop()
