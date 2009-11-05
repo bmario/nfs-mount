@@ -1,30 +1,36 @@
-#!/bin/sh
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          nfs-mount-browser
+# Required-Start:    $remote_fs avahi dbus
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NFS Mount Browser deamon
+# Description:       This deamon browses for nfs shares over Avahi
+### END INIT INFO
 
-set -e
+# Author: Mario Bielert <bugs@moonlake.de
 
-DESC="NFS-mount browser"
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+DESC="NFS Mount Browser"
 
 case "$1" in
-start)
-	printf "Starting $DESC:"
-    nfs-mount-browser.py &
-	printf " nfsmount-browser"
-	printf ".\n"
+  start)
+	echo "Starting $DESC: nfs-mount-browser."
+ 	nfs-mount-browser.py & > /dev/null
 	;;
-stop)
-	printf "Stopping $DESC:"
-	killall nfs-mount-browser.py
-	printf " nfsmount-browser"
-	printf ".\n"
+  stop)
+  	echo "Stopping $DESC: nfs-mount-browser."
+	kill $(pidof -x nfs-mount-browser.py)
 	;;
-restart)
-	$0 stop
-	sleep 1
-	$0 start
+  restart|force-reload)
+  	echo "Restarting $DESC: nfs-mount-browser."
+  	kill $(pidof -x nfs-mount-browser.py)
+  	nfs-mount-browser.py & > /dev/null
 	;;
-*)
-	printf "Usage: $0 {start|stop|restart}\n" >&2
-	exit 1
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	exit 3
 	;;
 esac
 

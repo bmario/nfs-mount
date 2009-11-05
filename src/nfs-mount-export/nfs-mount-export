@@ -1,30 +1,38 @@
-#!/bin/sh
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          nfs-mount-exporter
+# Required-Start:    $remote_fs avahi dbus nfs
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NFS Mount Browser deamon
+# Description:       This deamon publishes nfs shares over Avahi
+### END INIT INFO
 
-set -e
+# Author: Mario Bielert <bugs@moonlake.de
 
 test -x /usr/sbin/rpc.nfsd -a -f /etc/exports || exit 0
 
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+DESC="NFS Mount Exporter"
+
 case "$1" in
-start)
-	printf "Publish NFS-shares over Avahi:"
-	nfs-mount-exporter.py > /dev/null &
-	printf " Done"
-	printf ".\n"
+  start)
+	echo "Starting $DESC: nfs-mount-exporter."
+ 	nfs-mount-exporter.py & > /dev/null
 	;;
-stop)
-	printf "Stopping publishing the NFS-shares over Avahi:"
-	killall nfs-mount-exporter.py > /dev/null &
-	printf " Done"
-	printf ".\n"
+  stop)
+  	echo "Stopping $DESC: nfs-mount-exporter."
+	kill $(pidof -x nfs-mount-exporter.py)
 	;;
-restart)
-	$0 stop
-	sleep 1
-	$0 start
+  restart|force-reload)
+  	echo "Restarting $DESC: nfs-mount-exporter."
+  	kill $(pidof -x nfs-mount-exporter.py)
+  	nfs-mount-exporter.py & > /dev/null
 	;;
-*)
-	printf "Usage: $0 {start|stop|restart}\n" >&2
-	exit 1
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	exit 3
 	;;
 esac
 
