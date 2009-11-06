@@ -40,36 +40,47 @@ INSTALLATION:
 
 1. first you need the nfsmount-browser.
 
-this is the deamon part.
+this is the deamon part for clients.
 it scans the network over avahi (uses dbus) for any exported nfs shares.
 perfectly they look like this:
 name: some unique name, i've prefer FQDN:/path/to/share
 port: 2049 (anyways, it's the standard)
-type: _nfs._tcp (don't ask me why, it IS so)
+type: _nfs._tcp (don't ask me why, it IS so) and since we support nfs4, it can be _nfs4._tcp, unfortuately where isn't a standard for nfs4, so i decide to use this.
 TXT: path=/path/to/share
-also this deamon provides information and handling over dbus, that uses the applet.
+also this deamon provides information and handling over dbus, that uses the client applet.
 
 also this deamon mounts the shares, so it will need root rights!
 
 my advice is, to install the deamon as a service.
-
 for debian based just run src/nfs-mount-browser/install.sh.
 
 note: you will need the packages python-avahi, python-dbus, nfs-common, avahi-server
 
-2. the applet
+2. the applet for the clients
+
+This is a little gnome/gtk app placed in the systray, which allows mounting and browsing
+knowing shares. It uses DBus to communicate with the mount-browser.
+
+Short usage description:
+Use rigthclick to open the menu.
+Then you'll see a list of published shares. The little cabel-icon signals,
+whether the share is mounted or not. With a klick on an entry, you can toggle
+the mountstate of the selected share. With hovering over the "!"-icon,
+you get a tooltip, which provides extra-information about the share.
+"Quit" closes the applet.
+(If you have any good ideas, what a leftklick should do, mail me pls :))
 
 run src/nfs-mount-systray/install.sh
+this script also creates an autostart for the applet, please let me know,
+if this works well for you. (Maybe some XFCE users have problems?)
 
 note: you will need the packages python-avahi, python-dbus, avahi-deamon
 
 
 3. nfsmount-exporter (optional)
 
-this is a second deamon which exports your nfs-exports on your machine.
-until now it's a little hack :)
-it reads /etc/exports an then call for each line "avahi-publish-service ExportName 2049 _nfs._tcp path=/path/to/share"
-this is also a way you can use.
+this is a second deamon, which is for servers, which exports your nfs-exports on your machine.
+it reads /etc/exports an then publishes your shares over avahi.
 
 run src/nfs-mount-exporter/install.sh
 
@@ -79,15 +90,15 @@ DOCUMENTATION
 
 at this point here is just a short list of dbus doc for the nfsmount-browser deamon:
 
-busname "de.dragon_soft.nfsmount"
-objectpath "/de/dragon_soft/nfsmount"
+busname "de.moonlake.nfsmount"
+objectpath "/de/moonlake/nfsmount"
 
 signals:
 
     newShare    (string share) - Called when a new Share is found 
-    removeShare (string share) - Called when a known Share gets offline. (At this point mounted shares will be unmounted automaticly)
+    removeShare (string share) - Called when a known Share gets offline. (At this point mounted shares will be unmounted automaticly and if share was mounted, also unmountedShare() is triggered)
     mountedShare(string share) - Called when a share is mounted succesful
-    unmountShare(string share) - Called when a share is unmounted successful
+    unmountedShare(string share) - Called when a share is unmounted successful
     
 methods:
 
