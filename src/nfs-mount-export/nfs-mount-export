@@ -19,7 +19,7 @@ DESC="NFS Mount Exporter"
 case "$1" in
   start)
 	echo "Starting $DESC: nfs-mount-exporter."
- 	nfs-mount-exporter.py & > /dev/null
+ 	/usr/local/sbin/nfs-mount-exporter.py & > /dev/null
 	;;
   stop)
   	echo "Stopping $DESC: nfs-mount-exporter."
@@ -28,7 +28,7 @@ case "$1" in
   restart|force-reload)
   	echo "Restarting $DESC: nfs-mount-exporter."
   	kill $(pidof -x nfs-mount-exporter.py) > /dev/null
-  	nfs-mount-exporter.py & > /dev/null
+  	/usr/local/sbin/nfs-mount-exporter.py & > /dev/null
 	;;
   *)
 	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2

@@ -17,7 +17,7 @@ DESC="NFS Mount Browser"
 case "$1" in
   start)
 	echo "Starting $DESC: nfs-mount-browser."
- 	nfs-mount-browser.py & > /dev/null
+ 	/usr/local/sbin/nfs-mount-browser.py & > /dev/null
 	;;
   stop)
   	echo "Stopping $DESC: nfs-mount-browser."
@@ -26,7 +26,7 @@ case "$1" in
   restart|force-reload)
   	echo "Restarting $DESC: nfs-mount-browser."
   	kill $(pidof -x nfs-mount-browser.py) > /dev/null
-  	nfs-mount-browser.py & > /dev/null
+  	/usr/local/sbin/nfs-mount-browser.py & > /dev/null
 	;;
   *)
 	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
