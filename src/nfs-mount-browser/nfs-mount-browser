@@ -21,11 +21,15 @@ case "$1" in
 	;;
   stop)
   	echo "Stopping $DESC: nfs-mount-browser."
-	kill $(pidof -x nfs-mount-browser.py) > /dev/null
+  	if [ $(pidof -x nfs-mount-browser.py) > 0 ]; then
+		kill $(pidof -x nfs-mount-browser.py)
+	fi
 	;;
   restart|force-reload)
   	echo "Restarting $DESC: nfs-mount-browser."
-  	kill $(pidof -x nfs-mount-browser.py) > /dev/null
+  	if [ $(pidof -x nfs-mount-browser.py) > 0 ]; then
+		kill $(pidof -x nfs-mount-browser.py)
+	fi
   	/usr/local/sbin/nfs-mount-browser.py & > /dev/null
 	;;
   *)
