@@ -2,8 +2,17 @@ hey guys
 
 This package is very experimental!
 
-Please report any bug you found to bugs@moonlake.de.
+----------------------------
+	Bugs
+----------------------------
 
+Please report any bug you found to bugs@moonlake.de
+or create an issue at http://github.com/bmario/nfs-mount/issues
+
+
+----------------------------
+	License
+----------------------------
 so, now to the good things :)
 
 it's all gpl, so see:
@@ -25,68 +34,77 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
+----------------------------
 WHAT YOU NEED:
+----------------------------
 
-- a bit know-how about NFS
-- a nfs - server with some shares (with are reportet via avahi or use the nfsmount-exporter)
-- avahi and the python bindings
+- some know-how about NFS
+- a running Nfs-server with some shares
+- the Avahi-daemon and the Python
 - lot of time and coffee :)
 
-
+----------------------------
 INSTALLATION:
-(this works for Debian Lenny 5.0 amd64, other arches or Distribution should work similar)
+----------------------------
+(this works at least for Debian Lenny 5.0 amd64, other arches or Distribution should work similar)
 
 0. get root privileges :)
 
-1. first you need the nfsmount-browser.
+----------------------------
+1. Nfs-mount-browser
+----------------------------
 
-this is the deamon part for clients.
-it scans the network over avahi (uses dbus) for any exported nfs shares.
-perfectly they look like this:
-name: some unique name, i've prefer FQDN:/path/to/share
-port: 2049 (anyways, it's the standard)
-type: _nfs._tcp (don't ask me why, it IS so) and since we support nfs4, it can be _nfs4._tcp, unfortuately where isn't a standard for nfs4, so i decide to use this.
-TXT: path=/path/to/share
-also this deamon provides information and handling over dbus, that uses the client applet.
+This is the daemon part for clients.
+It scans the network over Avahi (uses Dbus) for any exported Nfs shares.
+Also this daemon provides information, which uses the client applet.
+Also this deamon mounts the shares, so it will need root rights!
 
-also this deamon mounts the shares, so it will need root rights!
+My advice is, to install the deamon as a service.
+For debian based just run: src/nfs-mount-browser/install.sh
+After that you should restart your system (or restart dbus).
 
-my advice is, to install the deamon as a service.
-for debian based just run src/nfs-mount-browser/install.sh.
+Note: you will need the packages python-avahi, python-dbus, nfs-common, avahi-daemon
 
-note: you will need the packages python-avahi, python-dbus, nfs-common, avahi-daemon
-
-2. the applet for the clients
+----------------------------
+2. Nfs-mount-systray
+----------------------------
 
 This is a little gnome/gtk app placed in the systray, which allows mounting and browsing
-knowing shares. It uses DBus to communicate with the mount-browser.
+known shares. It uses DBus to communicate with the Nfs-mount-browser.
 
 Short usage description:
+
 Use rigthclick to open the menu.
 Then you'll see a list of published shares. The little cabel-icon signals,
-whether the share is mounted or not. With a klick on an entry, you can toggle
-the mountstate of the selected share. With hovering over the "!"-icon,
+whether the share is mounted or not. With a click on an entry, you can toggle
+the mount-state of the selected share. With hovering over the "!"-icon,
 you get a tooltip, which provides extra-information about the share.
 "Quit" closes the applet.
-(If you have any good ideas, what a leftklick should do, mail me pls :))
+(If you have any good ideas, what a leftclick should do, let me know :))
 
-run src/nfs-mount-systray/install.sh
-this script also creates an autostart for the applet, please let me know,
+To install it, run: src/nfs-mount-systray/install.sh
+This install script also creates an autostart for the applet, please let me know,
 if this works well for you. (Maybe some XFCE users have problems?)
 
-note: you will need the packages python-avahi, python-dbus, avahi-daemon
+If the nfs-mount-browser crashes or you restart the deamon, the applet will crash.
+ 
+Note: you will need the packages python-avahi, python-dbus, avahi-daemon
 
+----------------------------
+3. Nfs-mount-exporter
+----------------------------
 
-3. nfsmount-exporter (optional)
+This is the deamon for servers, which exports your nfs-exports on the server over Avahi.
+It reads /etc/exports an then publishes your shares over avahi.
 
-this is a second deamon, which is for servers, which exports your nfs-exports on your machine.
-it reads /etc/exports an then publishes your shares over avahi.
+Run src/nfs-mount-exporter/install.sh
+Remember to restart this daemon after you changed your exports.
 
-run src/nfs-mount-exporter/install.sh
+Note: you will need the package nfs-kernel-server, avahi-daemon, python-dbus, python-avahi
 
-note: you will need the package nfs-kernel-server, avahi-daemon, python-dbus, python-avahi
-
+----------------------------
 DOCUMENTATION
+----------------------------
 
 at this point here is just a short list of dbus doc for the nfsmount-browser deamon:
 
