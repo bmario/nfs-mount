@@ -23,9 +23,7 @@
 from dbus import SystemBus, Interface, UInt32, UInt16
 from avahi import DBUS_NAME, DBUS_PATH_SERVER, DBUS_INTERFACE_ENTRY_GROUP, DBUS_INTERFACE_SERVER, IF_UNSPEC, PROTO_INET, string_array_to_txt_array
 from gobject import MainLoop
-from os import access, F_OK, R_OK
 from dbus.mainloop.glib import DBusGMainLoop
-from foomatic import detect
 DBusGMainLoop(set_as_default=True)
 
 serviceType3 = "_nfs._tcp" # See http://www.dns-sd.org/ServiceTypes.html
