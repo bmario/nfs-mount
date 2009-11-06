@@ -89,6 +89,7 @@ if this works well for you. (Maybe some XFCE users have problems?)
 If the nfs-mount-browser crashes or you restart the deamon, the applet will crash.
  
 Note: you will need the packages python-avahi, python-dbus, avahi-daemon
+For libnotify notifications you need the package python-notify
 
 ----------------------------
 3. Nfs-mount-exporter
