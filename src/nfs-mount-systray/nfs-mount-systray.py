@@ -22,7 +22,7 @@
 import gtk
 import dbus
 import avahi
-import time
+from sys import exit
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 try:
@@ -48,9 +48,13 @@ class NfsMountSystrayApplet:
 		self.icon.connect("activate", self.show_shares)
 
 		# dbus stuff
-		bus = dbus.SystemBus()
-		self.nfsmount = dbus.Interface(bus.get_object('de.moonlake.nfsmount', '/de/moonlake/nfsmount'), 'de.moonlake.nfsmount')
-
+		try:
+			bus = dbus.SystemBus()
+			self.nfsmount = dbus.Interface(bus.get_object('de.moonlake.nfsmount', '/de/moonlake/nfsmount'), 'de.moonlake.nfsmount')
+		except:
+			print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
+			exit(0)
+			
 		# connect to dbus signals
 		self.nfsmount.connect_to_signal("newShare", self.new_share)
 		self.nfsmount.connect_to_signal("removeShare", self.remove_share)
@@ -72,11 +76,20 @@ class NfsMountSystrayApplet:
 	# unmount handler
 	def unmount_share(self, widget, event=None):
 		if event in self.mountlist:
-			self.nfsmount.unmountShare(event)
+			try:
+				self.nfsmount.unmountShare(event)
+			except:
+				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+				exit(0) 
     # mount handler    
 	def mount_share(self, widget, event=None):
 		if event not in self.mountlist:
-			self.nfsmount.mountShare(event)
+			try:
+				self.nfsmount.mountShare(event)
+			except:
+				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+				exit(0) 
+
 
 	def new_share(self, share):
 		self.sharelist.append(share)
@@ -113,7 +126,12 @@ class NfsMountSystrayApplet:
 			item = gtk.MenuItem()
 			hbox = gtk.HBox(False,12)
 			item.add(hbox)
-			si = self.nfsmount.getShareInfo(share)
+			try:
+				si = self.nfsmount.getShareInfo(share)
+			except:
+				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+				exit(0) 
+				
 			if share in self.mountlist:
 				hbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CONNECT,gtk.ICON_SIZE_MENU),False,False)
 				item.connect("activate",self.unmount_share, share)
