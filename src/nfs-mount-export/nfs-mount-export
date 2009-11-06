@@ -23,11 +23,11 @@ case "$1" in
 	;;
   stop)
   	echo "Stopping $DESC: nfs-mount-exporter."
-	kill $(pidof -x nfs-mount-exporter.py)
+	kill $(pidof -x nfs-mount-exporter.py) > /dev/null
 	;;
   restart|force-reload)
   	echo "Restarting $DESC: nfs-mount-exporter."
-  	kill $(pidof -x nfs-mount-exporter.py)
+  	kill $(pidof -x nfs-mount-exporter.py) > /dev/null
   	nfs-mount-exporter.py & > /dev/null
 	;;
   *)
