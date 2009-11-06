@@ -54,7 +54,7 @@ also this deamon mounts the shares, so it will need root rights!
 my advice is, to install the deamon as a service.
 for debian based just run src/nfs-mount-browser/install.sh.
 
-note: you will need the packages python-avahi, python-dbus, nfs-common, avahi-server
+note: you will need the packages python-avahi, python-dbus, nfs-common, avahi-daemon
 
 2. the applet for the clients
 
@@ -74,7 +74,7 @@ run src/nfs-mount-systray/install.sh
 this script also creates an autostart for the applet, please let me know,
 if this works well for you. (Maybe some XFCE users have problems?)
 
-note: you will need the packages python-avahi, python-dbus, avahi-deamon
+note: you will need the packages python-avahi, python-dbus, avahi-daemon
 
 
 3. nfsmount-exporter (optional)
@@ -84,7 +84,7 @@ it reads /etc/exports an then publishes your shares over avahi.
 
 run src/nfs-mount-exporter/install.sh
 
-note: you will need the package nfs-kernel-server, avahi-server, python-dbus, python-avahi
+note: you will need the package nfs-kernel-server, avahi-daemon, python-dbus, python-avahi
 
 DOCUMENTATION
 
