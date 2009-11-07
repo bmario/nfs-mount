@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          nfs-mount-browser
 # Required-Start:    $remote_fs avahi dbus
@@ -11,7 +11,6 @@
 
 # Author: Mario Bielert <bugs@moonlake.de
 
-# PATH should only include /usr/* if it runs after the mountnfs.sh script
 DESC="NFS Mount Browser"
 
 case "$1" in
@@ -33,7 +32,7 @@ case "$1" in
   	/usr/local/sbin/nfs-mount-browser.py & > /dev/null
 	;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	echo "Usage: nfs-mount-browser {start|stop|restart|force-reload}" >&2
 	exit 3
 	;;
 esac

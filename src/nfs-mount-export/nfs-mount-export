@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          nfs-mount-exporter
 # Required-Start:    $remote_fs avahi dbus nfs
@@ -13,7 +13,6 @@
 
 test -x /usr/sbin/rpc.nfsd -a -f /etc/exports || exit 0
 
-# PATH should only include /usr/* if it runs after the mountnfs.sh script
 DESC="NFS Mount Exporter"
 
 case "$1" in
@@ -35,7 +34,7 @@ case "$1" in
   	/usr/local/sbin/nfs-mount-exporter.py & > /dev/null
 	;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	echo "Usage: nfs-mount-export {start|stop|restart|force-reload}" >&2
 	exit 3
 	;;
 esac
