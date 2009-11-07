@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
 ----------------------------
-WHAT YOU NEED:
+	WHAT YOU NEED:
 ----------------------------
 
 - some know-how about NFS
@@ -44,14 +44,14 @@ WHAT YOU NEED:
 - lot of time and coffee :)
 
 ----------------------------
-INSTALLATION:
+	INSTALLATION:
 ----------------------------
 (this works at least for Debian Lenny 5.0 amd64, other arches or Distribution should work similar)
 
 0. get root privileges :)
 
 ----------------------------
-1. Nfs-mount-browser
+	1. Nfs-mount-browser
 ----------------------------
 
 This is the daemon part for clients.
@@ -66,7 +66,7 @@ After that you should restart your system (or restart dbus).
 Note: you will need the packages python-avahi, python-dbus, nfs-common, avahi-daemon
 
 ----------------------------
-2. Nfs-mount-systray
+	2. Nfs-mount-systray
 ----------------------------
 
 This is a little gnome/gtk app placed in the systray, which allows mounting and browsing
@@ -92,7 +92,7 @@ Note: you will need the packages python-avahi, python-dbus, avahi-daemon
 For libnotify notifications you need the package python-notify
 
 ----------------------------
-3. Nfs-mount-exporter
+	3. Nfs-mount-exporter
 ----------------------------
 
 This is the deamon for servers, which exports your nfs-exports on the server over Avahi.
@@ -104,7 +104,17 @@ Remember to restart this daemon after you changed your exports.
 Note: you will need the package nfs-kernel-server, avahi-daemon, python-dbus, python-avahi
 
 ----------------------------
-DOCUMENTATION
+	Limitations
+----------------------------
+
+As I said, ist very experimental :)
+Some limitations are:
+- "extern" mounts aren't detected
+- No checks, whether mount/unmount goes wrong
+  This means in particular no errors triggered by nfs are reported
+
+----------------------------
+	DOCUMENTATION
 ----------------------------
 
 at this point here is just a short list of dbus doc for the nfsmount-browser deamon:
