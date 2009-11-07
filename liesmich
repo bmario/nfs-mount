@@ -1,0 +1,149 @@
+Hi
+
+Dieses Paket ist sher experimentell.
+
+----------------------------
+	Fehler
+----------------------------
+
+Bitte schickt alle Fehler, die ihr findet an <bugs@moonlake.de>
+erstellt ein "Issue" auf http://github.com/bmario/nfs-mount/issues
+
+
+----------------------------
+	Lizens
+----------------------------
+
+Es ist alles GPL:
+
+Copyright 2008-2009 Mario Bielert <mario@moonlake.de>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+----------------------------
+	Was du brauchst:
+----------------------------
+
+- NFS Kenntnisse
+- einen NFS Server mit ein paar Freigaben
+- Avahi und Python.
+- viel Zeit und Kaffee :)
+
+----------------------------
+	Installation
+----------------------------
+(Die Anleitung ist für Debian Lenny 5.0, andere Distributionen söllten ähnlich funktionieren)
+
+0. du wirst root Rechte benötigen
+
+----------------------------
+	1. Nfs-mount-browser
+----------------------------
+
+Das ist der Dienst für Clienten
+Er sucht nach Nfs-Freigaben im lokalen Netz per Avahi.
+Außerdem stellt er Informationen zur Verfügung, die das Applet benötigt.
+Zudem mountet dieser Dienst die Freigaben, es muss also als root laufen.
+
+Am besten richten man diesen Dienst mit init-Skripten ein.
+Für Debian und ähnliche einfach "src/nfs-mount-browser/install.sh" ausführen
+Danach ist es sinnvoll deinen Rechner zu rebooten.
+
+Beachte: dieser Dienst benötigt die Pakte python-avahi, python-dbus, nfs-common, avahi-daemon
+
+----------------------------
+	2. Nfs-mount-systray
+----------------------------
+
+Das ist ein kleines Programm für den Systray, das es erlaubt gefundene Freigaben zu mounten.
+Es benutzt den DBus um mit dem Nfs-mount-browser zu kommunizieren.
+Leider gibt es bisher nur eine englische Version dieses Tool. 
+
+Kurze Bedinugnanleitung:
+
+Ein Rechtsklick öffnet das Menü.
+In dem Menü ist eine Liste aller gefundenen Freigaben. Das kleine Kabel-Symbol
+zeigt dir an, ob die Freigabe gemountet ist, oder nicht. Mit einem Klick
+auf die Zeile, kannst du die Freigabe mounten und wieder unmounten.
+Überfährst du mit der Maus das Ausrufezeichen, wird ein Tooltip mit
+erweiterten Informationen zu der Freigabe angezeigt.
+"Quit" schließt das Programm.
+(Wenn du irgendwelche guten Ideen hast, wie man dieses Tool besser
+oder anderes gestallten kann, nur her damit :))
+
+Zur Installation einfach src/nfs-mount-systray/install.sh ausführen.
+Dabei wird auch ein Autostart Eintrag angelegt. Bitte teile mir mit,
+ob das bei dir funktioniert, speziell bei XFCE Benutzer bin ich mir da unsicher.
+
+Falls der Nfs-mount-browser neugestartet wird, nicht läuft oder abstürzt,
+dann wird auch das Applet abstürzen.
+ 
+Beacht: du wirst folgende Pakete benötigen: python-avahi, python-dbus, avahi-daemon
+Falls du auch libnotify Benarichtigungen haben willst, brauchst du zusaätzlich das 
+Paket: python-notify
+
+----------------------------
+	3. Nfs-mount-exporter
+----------------------------
+
+Das ist der Dienst für den Nfs-Server. Dieser Dienst publiziert alle Freigabe des Nfs-Servers
+über Avahi. Dazu wird die Datei /etc/exports ausgewertet.
+
+Zur installation führe einfach "src/nfs-mount-exporter/install.sh" aus
+Falls die Nfs-Freigaben geändert werden, muss dieser Dienst neugestartet werden,
+damit die änderungen übernohmen werden.
+
+Bachte: dieser Dienst benötigt folgende Pakete: nfs-kernel-server, avahi-daemon, python-dbus, python-avahi
+
+----------------------------
+	Einschränkungen
+----------------------------
+
+Wie gesagt, das Paket ist alles andere als fertig :)
+Einschränkungen wären:
+- Keine Übernahmen von bereits "extern" gemounteten Nfs-Freigaben
+- Keine Überprüfung ob tatsächlich gemountet/entmountet wurde
+  Insbesondere keine Fehlermeldung die mit Nfs selbst zusammen hängen 
+
+----------------------------
+	Dokumentation
+----------------------------
+
+Noch eine kurze Dokumentation des DBus Interfaces:
+
+busname "de.moonlake.nfsmount"
+objectpath "/de/moonlake/nfsmount"
+
+Signale:
+
+    newShare    (string share) - neue Freigabe gefunden 
+    removeShare (string share) - Freigabe verschwunden. (Bei diesem Signal wird auch die entsprechende Freigabe entmountet und unmountedShare() signalisiert.)
+    mountedShare(string share) - Freigabe gemountet
+    unmountedShare(string share) - Freigabe entmountet
+    
+Methoden:
+
+    getShareList()               - Liste aller gefundenen Freigaben
+    getMountList()               - Liste aller gemounteten Freigaben
+    getShareInfo(string share)   - Gibt Name, Host, Adresse, Port, Pfad, Version der Freigabe zurück
+    isShareMounted(string share) - Gibt wahr zurück, falls die Freigabe gemountet ist, sonst falsch
+    mountShare(share)            - weißt den Nfs-mount-browser an, die Freigabe zu mounten 
+    unmountShare(share)          - weißt den Nfs-mount-browser an, die Freigabe zu entmounten
+    
+
+Bitte gebt mir ein wenig Rückmeldung :)
+
+mario bielert
