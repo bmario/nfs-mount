@@ -33,15 +33,8 @@ except:
 
 class NfsMountSystrayApplet:
 	def __init__(self):
-		# known and mounted shares
-		self.sharelist = []
-		self.mountlist = []
-
 		# set icon
 		self.icon = gtk.status_icon_new_from_icon_name("server")
-
-		# set tooltip
-		self.update_tooltip()
 
 		# connect to signals		
 		self.icon.connect("popup-menu", self.show_menu)
@@ -54,6 +47,9 @@ class NfsMountSystrayApplet:
 		except:
 			print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
 			exit(0)
+
+		# set tooltip
+		self.update_tooltip()
 			
 		# connect to dbus signals
 		self.nfsmount.connect_to_signal("newShare", self.new_share)
@@ -75,24 +71,25 @@ class NfsMountSystrayApplet:
 
 	# unmount handler
 	def unmount_share(self, widget, event=None):
-		if event in self.mountlist:
+		if event in self.nfsmount.getMountList():
 			try:
 				self.nfsmount.unmountShare(event)
+				self.nfsmount.updateMounts()
 			except:
 				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
 				exit(0) 
     # mount handler    
 	def mount_share(self, widget, event=None):
-		if event not in self.mountlist:
+		if event not in self.nfsmount.getMountList():
 			try:
 				self.nfsmount.mountShare(event)
+				self.nfsmount.updateMounts()
 			except:
 				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
 				exit(0) 
 
 
 	def new_share(self, share):
-		self.sharelist.append(share)
 		share = self.nfsmount.getShareInfo(share)
 		self.update_tooltip()
 		self.notify_user("New Nfs Share Found", "share name: <b>%s</b>\nhost: <b>%s</b>\naddress: <b>%s</b>\npath: <b>%s</b>" % (share[0], share[1], share[2], share[4]))
@@ -103,26 +100,25 @@ class NfsMountSystrayApplet:
 		self.notify_user("Nfs Share has been removed", "share name: <b>%s</b>" % share)
 
 	def mounted_share(self, share):
-		self.mountlist.append(share)
 		self.update_tooltip()
 		self.notify_user("Nfs Share has been mounted", "share name: <b>%s</b>" % share)
 
 	def unmounted_share(self, share):
-		self.mountlist.remove(share)
 		self.update_tooltip()
 		self.notify_user("Nfs Share has been unmounted", "share name: <b>%s</b>" % share)
 
 
 	def update_tooltip(self, message=None):
-		tooltip = "Nfs Browser\n%i shares found.\n%i shares mounted." % (len(self.sharelist), len(self.mountlist))
+		tooltip = "Nfs Browser\n%i shares found.\n%i shares mounted." % (len(self.nfsmount.getShareList()), len(self.nfsmount.getMountList()))
 		if (message != None):
 			tooltip = message + "\n" + tooltip
 		self.icon.set_tooltip(tooltip)
 		
 	def show_menu(self, icon, button, timer):
+		self.nfsmount.updateMounts()
 		menu = gtk.Menu()
 		i = 0
-		for share in self.sharelist:
+		for share in self.nfsmount.getShareList():
 			item = gtk.MenuItem()
 			hbox = gtk.HBox(False,12)
 			item.add(hbox)
@@ -132,7 +128,7 @@ class NfsMountSystrayApplet:
 				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
 				exit(0) 
 				
-			if share in self.mountlist:
+			if share in self.nfsmount.getMountList():
 				hbox.pack_start(gtk.image_new_from_stock(gtk.STOCK_CONNECT,gtk.ICON_SIZE_MENU),False,False)
 				item.connect("activate",self.unmount_share, share)
 				tooltip = "Hostname: %s\nAddress: %s\nPath: %s\nVersion: %s\nShare is mounted." % (si[1], si[2],si[4], si[5])
@@ -163,22 +159,20 @@ class NfsMountSystrayApplet:
 			
 		menu.show_all()
 		menu.popup(None, None, gtk.status_icon_position_menu, button, timer, icon)
-		self.icon.set_blinking(False)
 		self.update_tooltip()
 		
 	def show_shares(self, icon):
-		self.icon.set_blinking(False)
 		self.update_tooltip()		
 
 	def notify_user(self, title, message):
 		try:
+			# use pynotify or nothing!
 			pynotify.init("Nfs Browser")
 			notification = pynotify.Notification(title, message, "server")
 			#notification.attach_to_status_icon(self.icon)
 			notification.show()
 		except:
-			self.update_tooltip(title + message)
-			self.icon.set_blinking(True)
-
+			pass
+		
 run = NfsMountSystrayApplet()
 

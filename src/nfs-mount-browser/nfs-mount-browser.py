@@ -50,6 +50,8 @@ class nfs_browser(dbus.service.Object):
         self.shares = {}
         self.mounts = []
         
+        self.updateMountList()
+        
         # prepare mounting
         try:
             os.makedirs(r"/media/nfs")
@@ -85,6 +87,8 @@ class nfs_browser(dbus.service.Object):
         path = txt[5:]
         self.shares[name] = [name, host, address, port, path, version]
         
+        self.updateMountList()
+        
         self.newShare(name)
         
     def removeItem(self, interface, protocol, name, stype, domain, flags):
@@ -116,19 +120,15 @@ class nfs_browser(dbus.service.Object):
             os.system(r"mount -t nfs4 %s:%s /media/nfs/%s%s" % (share[2], share[4], share[1], share[4].replace("/", "_")))
         else:
             os.system(r"mount -t nfs %s:%s /media/nfs/%s%s" % (share[2], share[4], share[1], share[4].replace("/", "_")))
-        self.mounts.append(share[0])
-
-        self.mountedShare(share[0])
+        
+        self.updateMountList()
         
     @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='s', out_signature='')
     def unmountShare(self, share):
         share = self.getShareInfo(share)
         os.system(r"umount -l -f /media/nfs/%s%s" % (share[1], share[4].replace("/", "_")))
         os.rmdir(r"/media/nfs/%s%s" % (share[1], share[4].replace("/", "_")))
-        self.mounts.remove(share[0])
-
-        self.unmountedShare(share[0])
-
+        self.updateMountList()
 
     @dbus.service.signal(dbus_interface='de.moonlake.nfsmount', signature='s')        
     def mountedShare(self, share):
@@ -145,10 +145,41 @@ class nfs_browser(dbus.service.Object):
     @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='', out_signature='as')
     def getMountList(self):
         return self.mounts
-       
+
+    @dbus.service.method(dbus_interface='de.moonlake.nfsmount', in_signature='', out_signature='')
+    def updateMounts(self):
+        self.updateMountList()
+    
     def print_error(*args):
         print 'error_handler'
         print args[0]
+        
+    def updateMountList(self, filename='/etc/mtab'):
+        oldmounts = self.mounts
+        self.mounts = []
+        f = open(filename, 'r')
+        for line in f.readlines():
+            if(line.find('nfsd') >= 0): continue # don't care about nfsd pseudo file system
+            if(line.find(' nfs') == -1): continue # we just need nfs or nfs4 file systems
+            address = line[:line.find(":")]
+            path = line[line.find(":") + 1:line.find(" ")]
+            
+            # iter all shares
+            for share in self.shares.itervalues():
+                if(share[2] == address and share[4] == path):
+                    # mount matches known share
+                    self.mounts.append(share[0])
+                    
+                    # if new trigger signal
+                    if(share[0] not in oldmounts):
+                        self.mountedShare(share[0])
+                    # if share not new, remove it from oldmountlist, so we know, which mounts are unmounted
+                    if(share[0] in oldmounts):
+                        oldmounts.remove(share[0])
+        f.close()
+
+        for share in oldmounts:
+            self.unmountedShare(share)
 
 if __name__ == "__main__":
     nfs = nfs_browser()
