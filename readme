@@ -137,6 +137,7 @@ methods:
     isShareMounted(string share) - returns a boolean whether given share is mounted or not
     mountShare(share)            - mounts a given share (if success, signal mountedShare() is called)
     unmountShare(share)          - unmounts a given share (if success, signal unmountedShare() is called)
+    updateMounts()               - force an update of the list of mounted shares
     
 so far.
 

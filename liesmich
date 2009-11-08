@@ -142,6 +142,7 @@ Methoden:
     isShareMounted(string share) - Gibt wahr zurück, falls die Freigabe gemountet ist, sonst falsch
     mountShare(share)            - weißt den Nfs-mount-browser an, die Freigabe zu mounten 
     unmountShare(share)          - weißt den Nfs-mount-browser an, die Freigabe zu entmounten
+    updateMounts()               - zwingt den Nfs-mount-browser, die Liste der gemounteten Freigaben zu überprüfen
     
 
 Bitte gebt mir ein wenig Rückmeldung :)
