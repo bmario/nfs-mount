@@ -45,12 +45,15 @@ def detect_nfs_version(filename='/etc/exports'):
     
     f = open(filename, 'r')
     for line in f.readlines():
-        if line.strip()[0] == '#': continue
-        if line.find('fsid=0') >= 0:
-            normalized_line = line.strip().replace('\t','    ')
-            serviceRootPath = normalized_line.split()[0]
-            serviceType = serviceType4
-            return 4
+        try:
+            if line.strip()[0] == '#': continue
+            if line.find('fsid=0') >= 0:
+                normalized_line = line.strip().replace('\t','    ')
+                serviceRootPath = normalized_line.split()[0]
+                serviceType = serviceType4
+                return 4
+        except:
+            pass
             
     f.close()
     return 3     
