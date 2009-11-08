@@ -74,7 +74,6 @@ class NfsMountSystrayApplet:
 		if event in self.nfsmount.getMountList():
 			try:
 				self.nfsmount.unmountShare(event)
-				self.nfsmount.updateMounts()
 			except:
 				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
 				exit(0) 
@@ -83,7 +82,6 @@ class NfsMountSystrayApplet:
 		if event not in self.nfsmount.getMountList():
 			try:
 				self.nfsmount.mountShare(event)
-				self.nfsmount.updateMounts()
 			except:
 				print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
 				exit(0) 
