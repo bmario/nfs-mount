@@ -96,8 +96,6 @@ class NfsMountSystrayApplet:
         if event in self.nfsmount.getMountList():
             try:
                 self.nfsmount.unmountShare(event)
-                client = gconf.client_get_default()
-               	client.set_bool('/apps/nfs-mount-systray/shares/%s/automount' % event.replace("/","_"), 0)
 
             except:
                 print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
@@ -107,8 +105,6 @@ class NfsMountSystrayApplet:
         if event not in self.nfsmount.getMountList():
             try:
                 self.nfsmount.mountShare(event)
-                client = gconf.client_get_default()
-               	client.set_bool('/apps/nfs-mount-systray/shares/%s/automount' % event.replace("/","_"), 1)
 
             except:
                 print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
