@@ -198,22 +198,25 @@ class NfsMountSystrayApplet:
             info = gtk.image_new_from_stock( gtk.STOCK_INFO, gtk.ICON_SIZE_MENU )
             info.set_tooltip_text( tooltip )
             info.set_alignment( 1, 1 )
-            hbox.pack_start( info, True, True )
+            hbox.pack_end( info )
             menu.attach( item, 0, 1, i, i + 1 )
             i = i + 1
-        menu.attach( gtk.MenuItem(), 0, 1, i, i + 1 )
+        if i > 0:
+            menu.attach( gtk.SeparatorMenuItem(), 0, 1, i, i + 1 )
 
         # notification switch
         i = i + 1
         item = gtk.CheckMenuItem( "Notifications" )
         item.set_active( self.notify )
         item.connect( "activate", self.toggle_notify )
+        item.set_tooltip_text( "Enable notification if there is an event." )
         menu.attach( item, 0, 1, i, i + 1 )
 
         # quit button
         i = i + 1
         item = gtk.ImageMenuItem( gtk.STOCK_QUIT )
         item.connect( "activate", self.quit )
+        item.set_tooltip_text( "Quit the applet." )
         menu.attach( item, 0, 1, i, i + 1 )
 
 
