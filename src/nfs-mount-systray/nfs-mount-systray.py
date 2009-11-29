@@ -30,7 +30,7 @@ try:
     import pynotify
 except:
     print "You don't seem to have pynotify installed."
-    print "So there are no notifications."
+    print "So there are no bubble notifications."
     print "To change this, just install python-notify."
 
 class NfsMountShare:
@@ -121,7 +121,7 @@ class NfsMountSystrayApplet:
                 self.nfsmount.unmountShare( event )
 
             except:
-                print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+                print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
                 exit( 0 )
     # mount handler    
     def mount_share( self, widget, event = None ):
@@ -130,7 +130,7 @@ class NfsMountSystrayApplet:
                 self.nfsmount.mountShare( event )
 
             except:
-                print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+                print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
                 exit( 0 )
 
 
@@ -148,7 +148,6 @@ class NfsMountSystrayApplet:
         	client.set_bool( '/apps/nfs-mount-systray/shares/%s/automount' % share[0].replace( "/", "_" ), 0 )
 
     def remove_share( self, share ):
-        self.sharelist.remove( share )
         self.update_tooltip()
         self.notify_user( "Nfs Share has been removed", "share name: <b>%s</b>" % share )
 
@@ -169,7 +168,7 @@ class NfsMountSystrayApplet:
         try:
             self.nfsmount.updateMounts()
         except:
-            print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+            print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
             exit( 0 )
 
         menu = gtk.Menu()
@@ -182,7 +181,7 @@ class NfsMountSystrayApplet:
                 si = self.nfsmount.getShareInfo( share )
                 share = NfsMountShare( si[0], si[1], si[2], si[3], si[4], si[5] )
             except:
-                print "Disconnected from the DBus interface of nfs-mount-browser. Make sure, that this daemon runs."
+                print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
                 exit( 0 )
 
             if share.getName() in self.nfsmount.getMountList():
@@ -236,6 +235,7 @@ class NfsMountSystrayApplet:
             client.set_bool( '/apps/nfs-mount-systray/notifications/all', 0 )
 
     def show_shares( self, icon ):
+        self.icon.set_blinking( False )
         self.update_tooltip()
 
     def notify_user( self, title, message ):
@@ -248,7 +248,16 @@ class NfsMountSystrayApplet:
                 #notification.attach_to_status_icon(self.icon)
                 notification.show()
             except:
-                pass
+                # there is no libnotify :( lets blink!
+                self.icon.set_blinking( True )
+
+                # update tooltip, maybe somebody reads :)
+                tooltip = "Nfs Browser\n%s: %s" % ( title, message )
+                self.icon.set_tooltip( tooltip )
+
+                # print to console
+                print title, message
+
         else:
             # no notifications pls!
             pass
