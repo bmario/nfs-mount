@@ -1,8 +1,8 @@
 #!/usr/bin/python
 #
-#       nfsmount-browser.py Version 0.1
+#       nfsmount-browser.py Version 0.2
 #
-#       Copyright 2008 Mario Bielert <bmario@dragon-soft.de>
+#       Copyright 2008 2009 2010 Mario Bielert <mario@moonlake.de>
 #
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -22,11 +22,105 @@
 #!/etc/env/python
 
 import dbus, gobject, avahi, os, subprocess
+from dbus import SystemBus, Interface, UInt32, UInt16
+from avahi import DBUS_NAME, DBUS_PATH_SERVER, DBUS_INTERFACE_ENTRY_GROUP, DBUS_INTERFACE_SERVER, IF_UNSPEC, PROTO_INET, string_array_to_txt_array
 from dbus import DBusException
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop( set_as_default = True )
 
+serviceType3 = "_nfs._tcp" # See http://www.dns-sd.org/ServiceTypes.html
+serviceType = serviceType3
+serviceType4 = "_nfs4._tcp" # This is not Standard, but what else we can do :(
+servicePort = 2049        # default NFS port
+serviceTXTPrefix = "path="      # TXT record for the service
+serviceDomain = "local"
+
+serviceRootPath = None
+
+class NfsAvahiPublish:
+    def __init__( self ):
+        # prepare avahi binding
+        bus = SystemBus()
+        server = Interface( 
+                bus.get_object( DBUS_NAME, DBUS_PATH_SERVER ),
+                DBUS_INTERFACE_SERVER )
+        self.hostname = server.GetHostNameFqdn()
+        self.group = Interface( bus.get_object( DBUS_NAME, server.EntryGroupNew() ), DBUS_INTERFACE_ENTRY_GROUP )
+
+        self.export()
+
+    # exports every share on this host  
+    def export( self ):
+        self.unexport()
+        for share in self.parse_shares():
+            # export the shares
+            self.export_share( share )
+        self.group.Commit()
+
+    def unexport( self ):
+        self.group.Reset()
+
+    def detect_nfs_version( self, filename = '/etc/exports' ):
+        """
+        Parses filename and detect the version of the used nfs
+        
+        Returns: 3, 4
+        """
+        global serviceRootPath, serviceType, serviceType4
+
+        f = open( filename, 'r' )
+        for line in f.readlines():
+            try:
+                if line.strip()[0] == '#': continue
+                if line.find( 'fsid=0' ) >= 0:
+                    normalized_line = line.strip().replace( '\t', '    ' )
+                    serviceRootPath = normalized_line.split()[0]
+                    serviceType = serviceType4
+                    return 4
+            except:
+                pass
+
+        f.close()
+        return 3
+
+    def parse_shares( self, filename = '/etc/exports' ):
+        """
+        Parses NFS Shares from filename.
+    
+        Returns: List of Shares
+        """
+        global serviceRootPath
+
+        version = self.detect_nfs_version()
+        shares = []
+        f = open( filename, 'r' )
+        for line in f.readlines():
+            try: # try is used for empty lines
+                if line.strip()[0] == '#': continue # is it a comment?
+
+                normalized_line = line.strip().replace( '\t', '    ' )
+                path = normalized_line.split()[0] #normalized path
+
+                # nfs4 stuff
+                if( version == 4 ):
+                    path = path.replace( serviceRootPath, '' )
+                    if path.strip() == '': path = '/'
+
+                shares.append( path )
+            except:
+                pass
+
+        f.close()
+
+        return shares
+
+
+    def export_share( self, share ):
+
+        serviceName = "%s:%s" % ( self.hostname, share )
+        serviceTXT = "%s%s" % ( serviceTXTPrefix, share )
+        self.group.AddService( IF_UNSPEC, PROTO_INET, UInt32( 0 ), serviceName, serviceType, serviceDomain, self.hostname, UInt16( servicePort ), string_array_to_txt_array( [serviceTXT] ) )
 
 class NfsMountShare:
     def __init__( self, name, host, address, port, path, version ):
@@ -104,6 +198,10 @@ class nfs_browser( dbus.service.Object ):
         except:
             pass
 
+        # prepare avahi publish
+        self.publish = NfsAvahiPublish()
+        self.publish.export()
+
         gobject.MainLoop().run()
 
     def newItem( self, interface, protocol, name, stype, domain, flags ):
@@ -145,6 +243,15 @@ class nfs_browser( dbus.service.Object ):
         pass
 
     @dbus.service.signal( dbus_interface = 'de.moonlake.nfsmount', signature = 's' )
+    def mountError( self, share ):
+        pass
+
+    @dbus.service.signal( dbus_interface = 'de.moonlake.nfsmount', signature = 's' )
+    def unmountError( self, share ):
+        pass
+
+
+    @dbus.service.signal( dbus_interface = 'de.moonlake.nfsmount', signature = 's' )
     def removeShare( self, share ):
         pass
 
@@ -168,11 +275,19 @@ class nfs_browser( dbus.service.Object ):
             pass
         try:
             os.makedirs( share.getMountDir() )
-            os.system( share.getMountCommand() )
         except:
             pass
 
+        try:
+            os.system( share.getMountCommand() )
+        except:
+            os.rmdir( share.getMountDir )
+
         self.updateMountList()
+
+        if share.getName() not in self.mounts:
+            self.mountError( share.getName() )
+
 
     @dbus.service.method( dbus_interface = 'de.moonlake.nfsmount', in_signature = 's', out_signature = '' )
     def unmountShare( self, share ):
@@ -185,7 +300,11 @@ class nfs_browser( dbus.service.Object ):
             os.rmdir( share.getMountDir() )
         except:
             pass
+
         self.updateMountList()
+
+        if share.getName() in self.mounts:
+            self.unmountError( share.getName() )
 
     @dbus.service.signal( dbus_interface = 'de.moonlake.nfsmount', signature = 's' )
     def mountedShare( self, share ):
@@ -206,6 +325,17 @@ class nfs_browser( dbus.service.Object ):
     @dbus.service.method( dbus_interface = 'de.moonlake.nfsmount', in_signature = '', out_signature = '' )
     def updateMounts( self ):
         self.updateMountList()
+
+    @dbus.service.method( dbus_interface = 'de.moonlake.nfsmount', in_signature = '', out_signature = '' )
+    def publishShares( self ):
+        print "exporting shares"
+        self.publish.export()
+
+    @dbus.service.method( dbus_interface = 'de.moonlake.nfsmount', in_signature = '', out_signature = '' )
+    def unpublishShares( self ):
+        print "unexporting shares"
+        self.publish.unexport()
+
 
     def updateMountList( self, filename = '/etc/mtab' ):
         oldmounts = self.mounts
@@ -236,4 +366,3 @@ class nfs_browser( dbus.service.Object ):
 
 if __name__ == "__main__":
     nfs = nfs_browser()
-
