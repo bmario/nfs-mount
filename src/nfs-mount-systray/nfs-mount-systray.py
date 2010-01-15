@@ -1,8 +1,8 @@
 #!/usr/bin/python
 #
-#       nfsmount-browser.py Version 0.1
+#       nfs-mount-systray.py Version 0.2
 #
-#       Copyright 2008 Mario Bielert <bmario@dragon-soft.de>
+#       Copyright 2008 2009 2010 Mario Bielert <mario@moonlake.de>
 #
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -80,8 +80,7 @@ class NfsMountSystrayApplet:
             bus = dbus.SystemBus()
             self.nfsmount = dbus.Interface( bus.get_object( 'de.moonlake.nfsmount', '/de/moonlake/nfsmount' ), 'de.moonlake.nfsmount' )
         except:
-            print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
-            exit( 0 )
+            self.connectDBus()
 
         # set tooltip
         self.update_tooltip()
@@ -91,6 +90,8 @@ class NfsMountSystrayApplet:
         self.nfsmount.connect_to_signal( "removeShare", self.remove_share )
         self.nfsmount.connect_to_signal( "mountedShare", self.mounted_share )
         self.nfsmount.connect_to_signal( "unmountedShare", self.unmounted_share )
+        self.nfsmount.connect_to_signal( "mountError", self.mount_error )
+        self.nfsmount.connect_to_signal( "unmountError", self.unmount_error )
 
         # initial scan for shares
         for share in self.nfsmount.getShareList():
@@ -108,44 +109,51 @@ class NfsMountSystrayApplet:
         if( client.get_bool( '/apps/nfs-mount-systray/init' ) == 0 ):
             # set standard values
             client.set_bool( '/apps/nfs-mount-systray/notifications/all', 1 )
+            client.set_bool( '/apps/nfs-mount-systray/publishing', 1 )
             client.set_bool( '/apps/nfs-mount-systray/init', 1 )
             self.notify = True
         else:
             # load old value
             self.notify = client.get_bool( '/apps/nfs-mount-systray/notifications/all' )
+            self.publishing = client.get_bool( '/apps/nfs-mount-systray/publishing' )
 
     # unmount handler
     def unmount_share( self, widget, event = None ):
         if event in self.nfsmount.getMountList():
             try:
                 self.nfsmount.unmountShare( event )
-
             except:
-                print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
-                exit( 0 )
+                self.connectDBus()
+
     # mount handler    
     def mount_share( self, widget, event = None ):
         if event not in self.nfsmount.getMountList():
-            try:
-                self.nfsmount.mountShare( event )
+            self.nfsmount.mountShare( event )
 
-            except:
-                print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
-                exit( 0 )
+            #except:
+            #    self.connectDBus()
 
+
+    # mount error handler
+    def mount_error( self, share ):
+        self.notify_user_error( "Nfs Share could not be mounted", "share name: <b>%s</b>" % share )
+
+    # unmount error handler
+    def unmount_error( self, share ):
+        self.notify_user_error( "Nfs Share could not be unmounted", "share name: <b>%s</b>" % share )
 
     def new_share( self, share ):
-    	share = self.nfsmount.getShareInfo( share )
+        share = self.nfsmount.getShareInfo( share )
 
-    	self.update_tooltip()
-    	self.notify_user( "New Nfs Share Found", "share name: <b>%s</b>\nhost: <b>%s</b>\naddress: <b>%s</b>\npath: <b>%s</b>" % ( share[0], share[1], share[2], share[4] ) )
+        self.update_tooltip()
+        self.notify_user( "New Nfs Share Found", "share name: <b>%s</b>\nhost: <b>%s</b>\naddress: <b>%s</b>\npath: <b>%s</b>" % ( share[0], share[1], share[2], share[4] ) )
 
-    	client = gconf.client_get_default()
-    	client.add_dir( '/apps/nfs-mount-systray/shares/%s' % share[0].replace( "/", "_" ), gconf.CLIENT_PRELOAD_NONE )
-    	if client.get_bool( '/apps/nfs-mount-systray/shares/%s/automount' % share[0].replace( "/", "_" ) ) == 1:
-    		self.nfsmount.mountShare( share[0] )
+        client = gconf.client_get_default()
+        client.add_dir( '/apps/nfs-mount-systray/shares/%s' % share[0].replace( "/", "_" ), gconf.CLIENT_PRELOAD_NONE )
+        if client.get_bool( '/apps/nfs-mount-systray/shares/%s/automount' % share[0].replace( "/", "_" ) ) == 1:
+            self.nfsmount.mountShare( share[0] )
         else:
-        	client.set_bool( '/apps/nfs-mount-systray/shares/%s/automount' % share[0].replace( "/", "_" ), 0 )
+            client.set_bool( '/apps/nfs-mount-systray/shares/%s/automount' % share[0].replace( "/", "_" ), 0 )
 
     def remove_share( self, share ):
         self.update_tooltip()
@@ -168,8 +176,7 @@ class NfsMountSystrayApplet:
         try:
             self.nfsmount.updateMounts()
         except:
-            print "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that the daemon is running."
-            exit( 0 )
+            self.connectDBus()
 
         menu = gtk.Menu()
         i = 0
@@ -204,6 +211,14 @@ class NfsMountSystrayApplet:
         if i > 0:
             menu.attach( gtk.SeparatorMenuItem(), 0, 1, i, i + 1 )
 
+        # avahi publishing switch
+        i = i + 1
+        item = gtk.CheckMenuItem( "Publish own shares" )
+        item.set_active( self.publishing )
+        item.connect( "activate", self.toggle_publishing )
+        item.set_tooltip_text( "Enables publishing own shares to other using the Avahi framework." )
+        menu.attach( item, 0, 1, i, i + 1 )
+
         # notification switch
         i = i + 1
         item = gtk.CheckMenuItem( "Notifications" )
@@ -224,6 +239,11 @@ class NfsMountSystrayApplet:
         menu.popup( None, None, gtk.status_icon_position_menu, button, timer, icon )
         self.update_tooltip()
 
+    def connectDBus( self ):
+        self.notify_user_error( "DBus Connection Error", "Could not connect to the nfs-mount-browser daemon over DBus. Please make sure, that this daemon is running. And then restart the applet." )
+
+        exit( 0 )
+
     # quit methode
     def quit( self, widget, event = None ):
         gtk.main_quit()
@@ -237,9 +257,39 @@ class NfsMountSystrayApplet:
         else:
             client.set_bool( '/apps/nfs-mount-systray/notifications/all', 0 )
 
+    # toggle publishing
+    def toggle_publishing( self, widget, event = None ):
+        client = gconf.client_get_default()
+        self.publishing = not self.publishing
+        if( self.publishing ):
+            client.set_bool( '/apps/nfs-mount-systray/publishing', 1 )
+            self.nfsmount.publishShares()
+        else:
+            client.set_bool( '/apps/nfs-mount-systray/publishing', 0 )
+            self.nfsmount.unpublishShares()
+
+
     def show_shares( self, icon ):
         self.icon.set_blinking( False )
         self.update_tooltip()
+
+    def notify_user_error( self, title, message ):
+        # print to console
+        print "%s:\n%s" % ( title, message )
+
+        try:
+            # use pynotify or nothing!
+            pynotify.init( "Nfs Browser" )
+            notification = pynotify.Notification( title, message, "server" )
+            notification.set_urgency( pynotify.URGENCY_CRITICAL )
+            notification.show()
+        except:
+            # there is no libnotify :( lets blink!
+            self.icon.set_blinking( True )
+
+            # update tooltip, maybe somebody reads :)
+            tooltip = "Nfs Browser\n%s:\n%s" % ( title, message )
+            self.icon.set_tooltip( tooltip )
 
     def notify_user( self, title, message ):
         if self.notify:
@@ -255,7 +305,7 @@ class NfsMountSystrayApplet:
                 self.icon.set_blinking( True )
 
                 # update tooltip, maybe somebody reads :)
-                tooltip = "Nfs Browser\n%s: %s" % ( title, message )
+                tooltip = "Nfs Browser\n%s:\n%s" % ( title, message )
                 self.icon.set_tooltip( tooltip )
 
                 # print to console
@@ -266,4 +316,3 @@ class NfsMountSystrayApplet:
             pass
 
 run = NfsMountSystrayApplet()
-
