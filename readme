@@ -56,6 +56,8 @@ MA 02110-1301, USA.
 
 This is the daemon part for clients.
 It scans the network over Avahi (uses Dbus) for any exported Nfs shares.
+For now on, it also can publish shares from the host it runs on.
+This means you do NOT need the browser AND the exporter on one machine. 
 Also this daemon provides information, which uses the client applet.
 Also this deamon mounts the shares, so it will need root rights!
 
@@ -79,6 +81,12 @@ Then you'll see a list of published shares. The little cabel-icon signals,
 whether the share is mounted or not. With a click on an entry, you can toggle
 the mount-state of the selected share. With hovering over the "!"-icon,
 you get a tooltip, which provides extra-information about the share.
+
+The option "Publish own shares" sets, if the mount-browser should publish Exports on 
+the host or not.
+
+The option "Notifications" toggles if notifications are shwon or not. 
+
 "Quit" closes the applet.
 (If you have any good ideas, what a leftclick should do, let me know :))
 
@@ -86,10 +94,11 @@ To install it, run: src/nfs-mount-systray/install.sh
 This install script also creates an autostart for the applet, please let me know,
 if this works well for you. (Maybe some XFCE users have problems?)
 
-If the nfs-mount-browser crashes or you restart the deamon, the applet will crash.
+If the nfs-mount-browser crashes or you restart the deamon, the applet will for now on
+trigger an error and closes itself. After you startet the daemon again, you can restart it.
  
 Note: you will need the packages python-avahi, python-dbus, avahi-daemon
-For libnotify notifications you need the package python-notify
+For libnotify notifications you need the package python-notify (strongly recommended)
 
 ----------------------------
 	3. Nfs-mount-exporter
@@ -107,11 +116,8 @@ Note: you will need the package nfs-kernel-server, avahi-daemon, python-dbus, py
 	Limitations
 ----------------------------
 
-As I said, ist very experimental :)
-Some limitations are:
-- "extern" mounts aren't detected
-- No checks, whether mount/unmount goes wrong
-  This means in particular no errors triggered by nfs are reported
+The old limitations should be gone now, but
+it's still experimental :)
 
 ----------------------------
 	DOCUMENTATION
@@ -124,10 +130,12 @@ objectpath "/de/moonlake/nfsmount"
 
 signals:
 
-    newShare    (string share) - Called when a new Share is found 
-    removeShare (string share) - Called when a known Share gets offline. (At this point mounted shares will be unmounted automaticly and if share was mounted, also unmountedShare() is triggered)
-    mountedShare(string share) - Called when a share is mounted succesful
+    newShare    (string share)   - Called when a new Share is found 
+    removeShare (string share)   - Called when a known Share gets offline. (At this point mounted shares will be unmounted automaticly and if share was mounted, also unmountedShare() is triggered)
+    mountedShare(string share)   - Called when a share is mounted succesful
     unmountedShare(string share) - Called when a share is unmounted successful
+    mountError(string share)     - Called when an error is returned from mount
+    unmountError(string share)   - Called when an error is returned from unmount
     
 methods:
 
@@ -138,6 +146,8 @@ methods:
     mountShare(share)            - mounts a given share (if success, signal mountedShare() is called)
     unmountShare(share)          - unmounts a given share (if success, signal unmountedShare() is called)
     updateMounts()               - force an update of the list of mounted shares
+    publishExports()			 - activates the exportation of exports
+    unpublishExports()			 - deactivates the exportation of exports
     
 so far.
 

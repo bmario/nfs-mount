@@ -6,7 +6,7 @@ Dieses Paket ist sher experimentell.
 	Fehler
 ----------------------------
 
-Bitte schickt alle Fehler, die ihr findet an <bugs@moonlake.de>
+Bitte schickt alle Fehler, die ihr findet an <bugs@moonlake.de> und/oder
 erstellt ein "Issue" auf http://github.com/bmario/nfs-mount/issues
 
 
@@ -55,6 +55,9 @@ MA 02110-1301, USA.
 
 Das ist der Dienst für Clienten
 Er sucht nach Nfs-Freigaben im lokalen Netz per Avahi.
+Ab jetzt kann er auch Nfs-Freigaben auf dem Rechner im lokalen Netz bekannt machen.
+Das bedeutet insbesondere, dass auf Machinen mit dem browser der exporter überflüssig ist
+und auch nicht mehr eingesetzt werden söllte. 
 Außerdem stellt er Informationen zur Verfügung, die das Applet benötigt.
 Zudem mountet dieser Dienst die Freigaben, es muss also als root laufen.
 
@@ -70,7 +73,7 @@ Beachte: dieser Dienst benötigt die Pakte python-avahi, python-dbus, nfs-common
 
 Das ist ein kleines Programm für den Systray, das es erlaubt gefundene Freigaben zu mounten.
 Es benutzt den DBus um mit dem Nfs-mount-browser zu kommunizieren.
-Leider gibt es bisher nur eine englische Version dieses Tool. 
+Leider gibt es bisher nur eine englische Version dieses Tools. 
 
 Kurze Bedinugnanleitung:
 
@@ -80,6 +83,11 @@ zeigt dir an, ob die Freigabe gemountet ist, oder nicht. Mit einem Klick
 auf die Zeile, kannst du die Freigabe mounten und wieder unmounten.
 Überfährst du mit der Maus das Ausrufezeichen, wird ein Tooltip mit
 erweiterten Informationen zu der Freigabe angezeigt.
+
+Die Option "Publish own shares" schaltet das Bekanntmachen der eigenen Freigaben aus und ein.
+
+Die Option "Notifications" schaltet die Benachrichtigungen ein und aus.
+
 "Quit" schließt das Programm.
 (Wenn du irgendwelche guten Ideen hast, wie man dieses Tool besser
 oder anderes gestallten kann, nur her damit :))
@@ -112,11 +120,9 @@ Bachte: dieser Dienst benötigt folgende Pakete: nfs-kernel-server, avahi-daemon
 	Einschränkungen
 ----------------------------
 
-Wie gesagt, das Paket ist alles andere als fertig :)
-Einschränkungen wären:
-- Keine Übernahmen von bereits "extern" gemounteten Nfs-Freigaben
-- Keine Überprüfung ob tatsächlich gemountet/entmountet wurde
-  Insbesondere keine Fehlermeldung die mit Nfs selbst zusammen hängen 
+Die alten Einschränkungen müssten jetzt behoben sein.
+Trotzdem ist das immer noch nicht fertig.
+Und auch kaum getestet.
 
 ----------------------------
 	Dokumentation
@@ -129,10 +135,13 @@ objectpath "/de/moonlake/nfsmount"
 
 Signale:
 
-    newShare    (string share) - neue Freigabe gefunden 
-    removeShare (string share) - Freigabe verschwunden. (Bei diesem Signal wird auch die entsprechende Freigabe entmountet und unmountedShare() signalisiert.)
-    mountedShare(string share) - Freigabe gemountet
+    newShare    (string share)   - neue Freigabe gefunden 
+    removeShare (string share)   - Freigabe verschwunden. (Bei diesem Signal wird auch die entsprechende Freigabe entmountet und unmountedShare() signalisiert.)
+    mountedShare(string share)   - Freigabe gemountet
     unmountedShare(string share) - Freigabe entmountet
+    mountError(string share)     - Fehler beim einhängen einer Freigabe
+    unmountError(string share)   - Fehler beim aushängen einer Freigabe
+    
     
 Methoden:
 
@@ -143,6 +152,8 @@ Methoden:
     mountShare(share)            - weißt den Nfs-mount-browser an, die Freigabe zu mounten 
     unmountShare(share)          - weißt den Nfs-mount-browser an, die Freigabe zu entmounten
     updateMounts()               - zwingt den Nfs-mount-browser, die Liste der gemounteten Freigaben zu überprüfen
+    publishExports()			 - eigene Freigaben bekannt geben
+    unpublishExports()			 - Bekanntmachung eigener Freigaben ausschalten
     
 
 Bitte gebt mir ein wenig Rückmeldung :)
