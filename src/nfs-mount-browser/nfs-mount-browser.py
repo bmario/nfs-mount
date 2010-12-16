@@ -53,10 +53,13 @@ class NfsAvahiPublish:
     # exports every share on this host  
     def export( self ):
         self.unexport()
+        not_empty = False
         for share in self.parse_shares():
             # export the shares
             self.export_share( share )
-        self.group.Commit()
+            not_empty = True
+        if not_empty:
+            self.group.Commit()
 
     def unexport( self ):
         self.group.Reset()
