@@ -70,7 +70,11 @@ class NfsAvahiPublish:
         """
         global serviceRootPath, serviceType, serviceType4
 
-        f = open( filename, 'r' )
+        try:
+            f = open( filename, 'r' )
+        except:
+            return 3
+		
         for line in f.readlines():
             try:
                 if line.strip()[0] == '#': continue
@@ -95,7 +99,11 @@ class NfsAvahiPublish:
 
         version = self.detect_nfs_version()
         shares = []
-        f = open( filename, 'r' )
+        try:
+            f = open( filename, 'r' )
+        except:
+            return []
+            
         for line in f.readlines():
             try: # try is used for empty lines
                 if line.strip()[0] == '#': continue # is it a comment?
@@ -329,12 +337,10 @@ class nfs_browser( dbus.service.Object ):
 
     @dbus.service.method( dbus_interface = 'de.moonlake.nfsmount', in_signature = '', out_signature = '' )
     def publishShares( self ):
-        print "exporting shares"
         self.publish.export()
 
     @dbus.service.method( dbus_interface = 'de.moonlake.nfsmount', in_signature = '', out_signature = '' )
     def unpublishShares( self ):
-        print "unexporting shares"
         self.publish.unexport()
 
 

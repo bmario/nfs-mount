@@ -55,6 +55,7 @@ class NfsAvahiPublish:
             not_empty = True
         if not_empty:
             self.group.Commit()
+
     def unexport( self ):
         self.group.Reset()
 
@@ -66,7 +67,11 @@ class NfsAvahiPublish:
         """
         global serviceRootPath, serviceType, serviceType4
 
-        f = open( filename, 'r' )
+        try:
+            f = open( filename, 'r' )
+        except:
+            return 3
+		
         for line in f.readlines():
             try:
                 if line.strip()[0] == '#': continue
@@ -91,7 +96,11 @@ class NfsAvahiPublish:
 
         version = self.detect_nfs_version()
         shares = []
-        f = open( filename, 'r' )
+        try:
+            f = open( filename, 'r' )
+        except:
+            return []
+            
         for line in f.readlines():
             try: # try is used for empty lines
                 if line.strip()[0] == '#': continue # is it a comment?
