@@ -18,21 +18,20 @@ DESC="NFS Mount Exporter"
 case "$1" in
   start)
 	echo "Starting $DESC: nfs-mount-exporter."
- 	/usr/local/sbin/nfs-mount-exporter.py & > /dev/null
+ 	/usr/local/sbin/nfs-mount-export.py & > /dev/null
 	;;
   stop)
   	echo "Stopping $DESC: nfs-mount-exporter."
-  	if [ $(pidof -x nfs-mount-exporter.py) > 0 ]; then
-		kill $(pidof -x nfs-mount-exporter.py)
+  	if [ $(pidof -x nfs-mount-export.py) > 0 ]; then
+		kill $(pidof -x nfs-mount-export.py)
 	fi
 	;;
   restart|force-reload)
   	echo "Restarting $DESC: nfs-mount-exporter."
-  	if [ $(pidof -x nfs-mount-exporter.py) > 0 ]; then
-		kill $(pidof -x nfs-mount-exporter.py)
+  	if [ $(pidof -x nfs-mount-export.py) > 0 ]; then
+		kill $(pidof -x nfs-mount-export.py)
 	fi
-  	/usr/local/sbin/nfs-mount-exporter.py & > /dev/null
-	;;
+  	/usr/local/sbin/nfs-mount-export.py & > /dev/null
   *)
 	echo "Usage: nfs-mount-export {start|stop|restart|force-reload}" >&2
 	exit 3
