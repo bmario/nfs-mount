@@ -9,7 +9,7 @@
 # Description:       This deamon publishes nfs shares over Avahi
 ### END INIT INFO
 
-# Author: Mario Bielert <bugs@moonlake.de
+# Author: Mario Bielert <mario.bielert@googlemail.com>
 
 test -x /usr/sbin/rpc.nfsd -a -f /etc/exports || exit 0
 

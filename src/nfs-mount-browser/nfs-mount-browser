@@ -9,7 +9,7 @@
 # Description:       This deamon browses for nfs shares over Avahi
 ### END INIT INFO
 
-# Author: Mario Bielert <bugs@moonlake.de
+# Author: Mario Bielert <mario.bielert@googlemail.com>
 
 DESC="NFS Mount Browser"
 

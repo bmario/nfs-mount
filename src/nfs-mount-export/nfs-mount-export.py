@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-#       nfsmount-exporter.py Version 0.2
-#
-#       Copyright 2008 2009 2010 Mario Bielert <mario@moonlake.de>
+#       Copyright 2008 2009 2010 Mario Bielert <mario.bielert@googlemail.com>
 #
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
